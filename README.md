@@ -6,7 +6,7 @@ VS Code Extension som hjälper utvecklare att omformulera teknisk/kort text till
 
 - VS Code 1.74.0 eller senare
 - [Ollama](https://ollama.ai/) installerat och körande lokalt
-- En Ollama-modell installerad (t.ex. `llama3.2`, `mistral`, `qwen2.5-coder`)
+- En Ollama-modell installerad (t.ex. `mistral`, `llama3.2`, `qwen2.5-coder`)
 
 ## Installation
 
@@ -31,7 +31,7 @@ Du kan ändra vilken Ollama-modell som används i VS Code Settings:
 2. Sök efter "bridge.model"
 3. Ändra värdet till din önskade modell (t.ex. `mistral`, `qwen2.5-coder`)
 
-Standardmodellen är `llama3.2`.
+Standardmodellen är `mistral`.
 
 ## Felsökning
 
@@ -39,7 +39,7 @@ Standardmodellen är `llama3.2`.
 
 - Kontrollera att Ollama körs: `ollama serve` i terminalen
 - Verifiera att modellen finns installerad: `ollama list`
-- Om modellen saknas, installera den: `ollama pull llama3.2` (eller din valda modell)
+- Om modellen saknas, installera den: `ollama pull mistral` (eller din valda modell)
 
 ### Extension svarar inte
 
