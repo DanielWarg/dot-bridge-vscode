@@ -1,0 +1,73 @@
+{
+  "name": ".bridge",
+  "displayName": ".bridge - Developer Tone Translator",
+  "description": "Hjälper utvecklare att omformulera teknisk text till professionell text med lokal AI via Ollama",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onCommand:bridge.diplomat",
+    "onCommand:bridge.techspec",
+    "onCommand:bridge.bugreport"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "bridge.diplomat",
+        "title": "Bridge: Socialize Text"
+      },
+      {
+        "command": "bridge.techspec",
+        "title": "Bridge: Generate Tech Spec"
+      },
+      {
+        "command": "bridge.bugreport",
+        "title": "Bridge: Create Bug Report"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "bridge.diplomat",
+        "key": "cmd+shift+b",
+        "mac": "cmd+shift+b",
+        "when": "editorTextFocus"
+      },
+      {
+        "command": "bridge.diplomat",
+        "key": "ctrl+shift+b",
+        "when": "editorTextFocus && !isMac"
+      }
+    ],
+    "configuration": {
+      "title": ".bridge",
+      "properties": {
+        "bridge.model": {
+          "type": "string",
+          "default": "mistral",
+          "description": "Ollama model to use (mistral recommended for best reasoning)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "18.x",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "node-fetch": "^2.7.0",
+    "@types/node-fetch": "^2.6.11"
+  }
+}
+
