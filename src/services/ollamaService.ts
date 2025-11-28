@@ -1,43 +1,388 @@
 import * as vscode from 'vscode';
 import fetch from 'node-fetch';
 
-interface LocalAIResponse {
-  response: string;
+// 🛡️ SÄKERHET: Svarta listan (Regex Guardrails)
+// Dessa mönster stoppar de vanligaste försöken att "jailbreaka" modellen.
+const SECURITY_PATTERNS = [
+  /ignore (all )?previous instructions/i,
+  /ignore (all )?directions/i,
+  /system prompt/i,
+  /you are not/i,
+  /dan mode/i, // "Do Anything Now" attack
+  /jailbreak/i,
+  /skriv en dikt/i, // Specifikt skydd mot dikt-attacker ;)
+  /--- MALL SLUT ---/i, // Försök att fejka system-slut
+  /simulera/i,
+];
+
+// 🧱 DoS-skydd: Max input length
+const MAX_INPUT_LENGTH = 100000; // 100k tecken
+
+// 🚦 Rate Limiting: Förhindrar resursmissbruk och DoS
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minut
+const RATE_LIMIT_MAX_REQUESTS = 10; // Max 10 requests per minut
+
+interface RateLimitEntry {
+  count: number;
+  resetTime: number;
 }
 
+// In-memory rate limiter (per VS Code session)
+let rateLimitStore: RateLimitEntry = {
+  count: 0,
+  resetTime: Date.now() + RATE_LIMIT_WINDOW_MS,
+};
+
+/**
+ * 🚦 Rate Limiting: Kontrollerar om request får genomföras.
+ */
+function checkRateLimit(): { allowed: boolean; retryAfter?: number } {
+  const now = Date.now();
+
+  // Reset om tidsfönstret har gått
+  if (now >= rateLimitStore.resetTime) {
+    rateLimitStore = {
+      count: 0,
+      resetTime: now + RATE_LIMIT_WINDOW_MS,
+    };
+  }
+
+  // Kontrollera om gränsen är nådd
+  if (rateLimitStore.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const retryAfter = Math.ceil((rateLimitStore.resetTime - now) / 1000);
+    return { allowed: false, retryAfter };
+  }
+
+  // Öka räknaren
+  rateLimitStore.count++;
+  return { allowed: true };
+}
+
+/**
+ * 🚨 SSRF-Skydd: Validerar att URL:en är säker att använda.
+ */
+function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+
+    // Endast http och https tillåtna
+    if (!['http:', 'https:'].includes(parsed.protocol)) {
+      return false;
+    }
+
+    // Blockera farliga protokoll explicit
+    const dangerousProtocols = ['file:', 'gopher:', 'ftp:', 'data:', 'javascript:'];
+    if (dangerousProtocols.includes(parsed.protocol)) {
+      return false;
+    }
+
+    // Validera hostname-struktur (förhindra SSRF via localhost-variationer)
+    const hostname = parsed.hostname.toLowerCase();
+    const allowedHosts = ['localhost', '127.0.0.1', '::1'];
+
+    // Om det inte är localhost, kräv att det är en giltig domän
+    if (!allowedHosts.includes(hostname)) {
+      // Enkel validering: måste innehålla punkt (domän) eller vara IPv4/IPv6
+      if (!hostname.includes('.') && !/^(\d{1,3}\.){3}\d{1,3}$/.test(hostname)) {
+        return false;
+      }
+    }
+
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * 🔍 Encoding Detection: Upptäcker base64 och andra encoding-försök.
+ */
+function detectEncoding(text: string): { isEncoded: boolean; type?: string } {
+  // Base64 detection: Måste vara minst 4 tecken, endast base64-karaktärer, och ha rätt längd (multipel av 4)
+  const base64Pattern = /^[A-Za-z0-9+/]{4,}={0,2}$/;
+  const base64StrictPattern = /^[A-Za-z0-9+/]+={0,2}$/;
+  
+  // Om texten är för kort, är det troligen inte encoding
+  if (text.length < 8) {
+    return { isEncoded: false };
+  }
+
+  // Ta bort whitespace för att testa
+  const cleaned = text.replace(/\s+/g, '');
+
+  // Testa base64
+  if (base64StrictPattern.test(cleaned) && cleaned.length % 4 === 0) {
+    // Försök dekoda för att verifiera
+    try {
+      const decoded = Buffer.from(cleaned, 'base64').toString('utf-8');
+      // Om dekodningen ger läsbar text, är det troligen base64
+      if (decoded.length > 0 && /[\x20-\x7E]{3,}/.test(decoded)) {
+        return { isEncoded: true, type: 'base64' };
+      }
+    } catch {
+      // Inte giltig base64
+    }
+  }
+
+  // URL encoding detection (2+ %XX-sekvenser är misstänkt)
+  const urlEncodedPattern = /(%[0-9A-Fa-f]{2}){2,}/;
+  if (urlEncodedPattern.test(text)) {
+    return { isEncoded: true, type: 'url-encoded' };
+  }
+  
+  // Ytterligare check: Om texten innehåller % och är misstänkt
+  // (URL-encoding används ofta för att dölja attacker)
+  if (text.includes('%') && text.match(/%[0-9A-Fa-f]{2}/)) {
+    // Om det finns minst 1 %XX-sekvens, är det misstänkt
+    return { isEncoded: true, type: 'url-encoded' };
+  }
+
+  return { isEncoded: false };
+}
+
+/**
+ * 🛡️ Normaliserar input för att göra regex-detektion mer robust.
+ * Eliminerar Unicode homoglyphs och obfuscation.
+ */
+function normalizeInput(text: string): string {
+  // 1. Unicode-normalisering (NFKC): Konverterar kompatibla tecken till standardform
+  // Detta konverterar t.ex. fullwidth 'Ａ' -> ASCII 'A', Fancy font '𝐇' -> ASCII 'H'
+  // OBS: NFKC konverterar INTE alla homoglyphs (t.ex. Cyrillic 'о' och 'е' förblir)
+  let normalized = text.normalize('NFKC');
+  
+  // 1.1. Explicit homoglyph-mapping för tecken som NFKC inte hanterar
+  // Cyrillic och andra alfabet som ser ut som ASCII
+  // Mappning baserad på visuell likhet och kontext
+  const homoglyphMap: { [key: string]: string } = {
+    // Cyrillic lowercase - viktiga tecken för vanliga attacker
+    // Mappning baserad på VISUELL likhet (hur det ser ut), inte Unicode-betydelse
+    '\u0456': 'i', // і (Cyrillic i, U+0456) -> i
+    '\u043E': 'o', // о (Cyrillic o, U+043E) -> o
+    '\u0435': 'e', // е (Cyrillic e, U+0435) -> e
+    '\u0440': 'p', // р (Cyrillic r, U+0440) -> p (ser ut som p, används som p i attacker)
+    '\u0432': 'v', // в (Cyrillic v, U+0432) -> v
+    '\u0455': 's', // ѕ (Cyrillic s, U+0455) -> s
+    '\u0441': 'c', // с (Cyrillic s, U+0441) -> c (ser ut som c, används som c i attacker)
+    '\u043D': 'n', // н (Cyrillic n, U+043D) -> n
+    '\u0442': 't', // т (Cyrillic t, U+0442) -> t
+    '\u0443': 'u', // у (Cyrillic u, U+0443) -> u
+    '\u0430': 'a', // а (Cyrillic a, U+0430) -> a
+    '\u0445': 'x', // х (Cyrillic h, U+0445) -> x
+    // Cyrillic uppercase
+    '\u0410': 'A', '\u0415': 'E', '\u041E': 'O',
+    '\u0420': 'P', '\u0421': 'C', '\u0423': 'Y', '\u0425': 'X',
+    // Greek
+    '\u03BF': 'o', '\u03B1': 'a', '\u03B5': 'e',
+    // Fullwidth (borde hanteras av NFKC, men extra säkerhet)
+    '\uFF41': 'a', '\uFF45': 'e', '\uFF4F': 'o',
+  };
+  
+  for (const [homoglyph, ascii] of Object.entries(homoglyphMap)) {
+    normalized = normalized.replace(new RegExp(homoglyph, 'g'), ascii);
+  }
+
+  // 2. Ta bort alla tecken som INTE är printable ASCII eller vanliga svenska tecken
+  // Behåll: ASCII printable (0x20-0x7E) + svenska tecken (åäöÅÄÖ) + extended Latin
+  // Regex: [\x20-\x7E] = printable ASCII, [\u00C0-\u00FF] = Latin-1 Supplement (åäö), [\u0100-\u017F] = Latin Extended-A
+  // VIKTIGT: NFKC normalisering ovan ska redan ha konverterat homoglyphs, men vi tar bort resterande
+  normalized = normalized.replace(/[^\x20-\x7E\u00C0-\u00FF\u0100-\u017F]/g, '');
+  
+  // Extra check: Om efter NFKC + filtrering finns det fortfarande icke-ASCII som ser ut som ASCII
+  // (detta fångar fall där NFKC inte fungerade perfekt)
+  // Kontrollera om det finns tecken som inte är i vår whitelist men ser ut som ASCII
+  const suspiciousChars = normalized.match(/[^\x20-\x7E\u00C0-\u00FF\u0100-\u017F]/g);
+  if (suspiciousChars && suspiciousChars.length > 0) {
+    // Om vi hittar misstänkta tecken efter normalisering, ta bort dem
+    normalized = normalized.replace(/[^\x20-\x7E\u00C0-\u00FF\u0100-\u017F]/g, '');
+  }
+
+  // 3. Konvertera till lowercase (efter Unicode-normalisering)
+  normalized = normalized.toLowerCase();
+
+  // 4. Byt ut leetspeak-tecken
+  const leetspeakMap: { [key: string]: string } = {
+    '0': 'o',
+    '1': 'i',
+    '3': 'e',
+    '@': 'a',
+    '$': 's',
+    '5': 's',
+    '7': 't',
+    '!': 'i',
+  };
+
+  for (const [leet, normal] of Object.entries(leetspeakMap)) {
+    normalized = normalized.replace(new RegExp(leet, 'g'), normal);
+  }
+
+  // 5. Ta bort invisible characters och bidirectional marks - extra säkerhet
+  normalized = normalized.replace(/[\u200B-\u200D\uFEFF]/g, ''); // Zero-width spaces
+  
+  // 5.1. Bidirectional text detection och fix
+  // Om texten innehåller RTL-marks, kan den vara baklänges - vänd den
+  const hasRTL = /[\u202A-\u202E\u2066-\u2069]/.test(normalized);
+  if (hasRTL) {
+    // Ta bort RTL-marks
+    normalized = normalized.replace(/[\u202A-\u202E\u2066-\u2069]/g, '');
+    // Vänd texten om den ser ut som baklänges (för att fånga RTL-attacker)
+    // Vi vänder bara om texten innehåller vanliga engelska ord baklänges
+    const reversed = normalized.split('').reverse().join('');
+    // Kolla om den vända versionen är mer "normal" (innehåller vanliga ord)
+    // Om den vända versionen matchar våra patterns bättre, använd den
+    const commonWords = ['ignore', 'previous', 'instructions', 'system', 'prompt'];
+    const originalHasWords = commonWords.some(word => normalized.toLowerCase().includes(word));
+    const reversedHasWords = commonWords.some(word => reversed.toLowerCase().includes(word));
+    
+    // Om den vända versionen har fler vanliga ord, använd den
+    if (reversedHasWords && !originalHasWords) {
+      normalized = reversed;
+    }
+  } else {
+    // Ta bort RTL-marks även om de inte finns (för säkerhet)
+    normalized = normalized.replace(/[\u202A-\u202E\u2066-\u2069]/g, '');
+  }
+
+  // 6. Normalisera whitespace (ersätt multiple spaces/tabs/newlines med single space)
+  normalized = normalized.replace(/\s+/g, ' ');
+
+  return normalized.trim();
+}
+
+/**
+ * Dörrvakten: Kollar om texten innehåller fientliga mönster.
+ */
+function validateInput(text: string): { safe: boolean; reason?: string } {
+  // 1. Encoding detection först (innan normalisering)
+  const encodingCheck = detectEncoding(text);
+  if (encodingCheck.isEncoded) {
+    return {
+      safe: false,
+      reason: `Säkerhetsvarning: Input verkar vara ${encodingCheck.type}-kodad. Encoding-försök är inte tillåtna.`,
+    };
+  }
+
+  // 2. Normalisera input
+  const normalized = normalizeInput(text);
+
+  // 3. Kör regex-checken på normaliserad text
+  for (const pattern of SECURITY_PATTERNS) {
+    if (pattern.test(normalized)) {
+      return {
+        safe: false,
+        reason: `Säkerhetsvarning: Input innehåller förbjudet mönster`,
+      };
+    }
+  }
+  return { safe: true };
+}
+
+/**
+ * Den centrala AI-bryggan.
+ * Hanterar Konfig, Säkerhet, Timeout och Nätverk.
+ */
 export async function bridgeText(
   userText: string,
   systemPrompt: string
 ): Promise<string> {
-  try {
-    // Läs modellnamn från konfiguration
-    const config = vscode.workspace.getConfiguration('bridge');
-    const model = config.get<string>('model', 'mistral');
+  // 0. 🚦 RATE LIMITING: Kontrollera först (sparar resurser)
+  const rateLimitCheck = checkRateLimit();
+  if (!rateLimitCheck.allowed) {
+    return `⚠️ För många förfrågningar. Vänta ${rateLimitCheck.retryAfter} sekunder innan du försöker igen.`;
+  }
 
-    const response = await fetch('http://localhost:11434/api/generate', {
+  // 1. 🧱 DoS-SKYD: Kontrollera input-längd
+  if (userText.length > MAX_INPUT_LENGTH) {
+    return `⚠️ Input för stor. Max ${MAX_INPUT_LENGTH} tecken tillåtet.`;
+  }
+
+  // 2. 🛡️ SÄKERHETSCHECK (Input Sanitization)
+  // Vi stoppar attacken innan den ens når AI-servern (sparar CPU).
+  const securityCheck = validateInput(userText);
+  if (!securityCheck.safe) {
+    console.warn(`[Bridge Security] Blocked input: ${securityCheck.reason}`);
+    return `⛔ ${securityCheck.reason}. Förfrågan avvisades av säkerhetsskäl.`;
+  }
+
+  // 3. ⚙️ HÄMTA KONFIGURATION (Enterprise Compliance)
+  // Detta gör att företag kan peka om URL:en till en intern server via Group Policy.
+  const config = vscode.workspace.getConfiguration('bridge');
+  const apiBaseUrl =
+    config.get<string>('apiBaseUrl') || 'http://localhost:11434'; // Default: Localhost
+  const model = config.get<string>('model') || 'mistral'; // Default: Mistral (stabilare än llama3.2)
+
+  // 3.1. 🚨 SSRF-SKYD: Validera URL innan användning
+  if (!isValidUrl(apiBaseUrl)) {
+    console.error(`[Bridge Security] Invalid API URL blocked: ${apiBaseUrl}`);
+    return `⛔ Ogiltig API URL konfigurerad. Kontakta administratören.`;
+  }
+
+  // 4. ⏱️ TIMEOUT (Driftsäkerhet)
+  // Vi ger AI:n max 60 sekunder på sig. Annars avbryter vi så inte VS Code hänger sig.
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 sekunder
+
+  try {
+    const response = await fetch(`${apiBaseUrl}/api/generate`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         model: model,
-        prompt: userText,
-        system: systemPrompt,
-        stream: false,
+        system: systemPrompt, // Här skickar vi med Arkitekten/Diplomaten
+        prompt: userText, // Användarens (saniterade) text
+        stream: false, // Vi vill ha hela svaret på en gång (enklare hantering)
         options: {
-          temperature: 0.1, // LÅG temperatur = mindre hittepå, mer stabil svenska
+          temperature: 0.1, // 🧊 LÅG TEMP = Deterministisk, professionell, inga hallucinationer.
+          num_ctx: 4096, // Kontextfönster (så den minns längre texter)
         },
       }),
+      signal: controller.signal, // Koppla timeout-signalen till anropet
     });
 
+    clearTimeout(timeoutId); // Stoppa timern om vi fick svar i tid
+
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Server responded with HTTP ${response.status}`);
     }
 
-    const data = (await response.json()) as LocalAIResponse;
-    return data.response;
-  } catch (error) {
-    throw new Error('❌ Could not connect to local AI. Is the service running?');
+    const data = await response.json();
+
+    // 5. 🧹 OUTPUT SANITIZATION (Städning)
+    // Ibland (sällan) läcker modellen ut interna instruktioner. Vi klipper bort dem.
+    let cleanResponse = (data.response || '').trim();
+
+    // Unicode-normalisering på output också (för säkerhet)
+    cleanResponse = cleanResponse.normalize('NFKC');
+
+    // Ta bort saker som modellen inte borde ha skrivit ut
+    cleanResponse = cleanResponse.replace(/--- MALL SLUT ---/gi, '');
+    cleanResponse = cleanResponse.replace(/VIKTIGT:.*/gi, '');
+    cleanResponse = cleanResponse.replace(/REGLER:.*/gi, '');
+    cleanResponse = cleanResponse.replace(/SÄKERHETSPROTOKOLL:.*/gi, '');
+    cleanResponse = cleanResponse.replace(/SÄKERHETSINSTRUKTION:.*/gi, '');
+
+    return cleanResponse;
+  } catch (error: any) {
+    clearTimeout(timeoutId);
+
+    // 🔒 Information Disclosure: Logga detaljer för debug, men visa generiskt fel för användaren
+    console.error('Bridge Error:', {
+      message: error.message,
+      code: error.code,
+      name: error.name,
+      apiBaseUrl: apiBaseUrl, // Logga URL för debug
+    });
+
+    // Snygg felhantering för användaren (utan känslig info)
+    if (error.name === 'AbortError') {
+      return '⚠️ Timeout: AI-modellen svarade inte inom 60 sekunder. Är din dator belastad eller modellen för stor?';
+    }
+
+    // Hantera anslutningsfel (vanligast) - generiskt meddelande
+    if (error.code === 'ECONNREFUSED') {
+      return `❌ Kunde inte ansluta till den konfigurerade AI-servern.\n\nTips: Kontrollera att AI-tjänsten körs.`;
+    }
+
+    // Generiskt felmeddelande för användaren
+    return `❌ Ett fel uppstod vid kommunikation med AI-servern. Kontrollera konfigurationen.`;
   }
 }
-

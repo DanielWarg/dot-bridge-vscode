@@ -95,3 +95,5 @@ dot-bridge-vscode/
 5. Skapa .vscode/launch.json för debugging extension
 6. Skapa README.md med konfigurationsinstruktioner och uppdatera agent.md med projektinformation
 
+
+

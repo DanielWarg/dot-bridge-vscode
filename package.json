@@ -46,10 +46,15 @@
     "configuration": {
       "title": ".bridge",
       "properties": {
+        "bridge.apiBaseUrl": {
+          "type": "string",
+          "default": "http://localhost:11434",
+          "description": "URL till AI API. Ändra denna om du kör mot en central företagsserver."
+        },
         "bridge.model": {
           "type": "string",
           "default": "mistral",
-          "description": "Local model to use (mistral recommended for best reasoning)"
+          "description": "Namnet på modellen som ska användas (t.ex. mistral, llama3.2)."
         }
       }
     }
