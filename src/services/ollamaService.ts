@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 import fetch from 'node-fetch';
 
-interface OllamaResponse {
+interface LocalAIResponse {
   response: string;
 }
 
@@ -34,10 +34,10 @@ export async function bridgeText(
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    const data = (await response.json()) as OllamaResponse;
+    const data = (await response.json()) as LocalAIResponse;
     return data.response;
   } catch (error) {
-    throw new Error('❌ Could not connect to local AI. Is Ollama running?');
+    throw new Error('❌ Could not connect to local AI. Is the service running?');
   }
 }
 

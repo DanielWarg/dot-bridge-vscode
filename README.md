@@ -1,12 +1,11 @@
 # .bridge - Developer Tone Translator
 
-VS Code Extension som hjälper utvecklare att omformulera teknisk/kort text till professionell text direkt i editorn. Använder lokal AI via Ollama.
+VS Code Extension som hjälper utvecklare att omformulera teknisk/kort text till professionell text direkt i editorn. Använder en lokal AI-modell som körs på din maskin (default: `mistral`).
 
 ## Krav
 
 - VS Code 1.74.0 eller senare
-- [Ollama](https://ollama.ai/) installerat och körande lokalt
-- En Ollama-modell installerad (t.ex. `mistral`, `llama3.2`, `qwen2.5-coder`)
+- En lokal AI-server som lyssnar på `http://localhost:11434` (t.ex. `mistral`, `llama3.2`, `qwen2.5-coder`)
 
 ## Installation
 
@@ -25,7 +24,7 @@ VS Code Extension som hjälper utvecklare att omformulera teknisk/kort text till
 
 ## Konfiguration
 
-Du kan ändra vilken Ollama-modell som används i VS Code Settings:
+Du kan ändra vilken lokal modell som används i VS Code Settings:
 
 1. Öppna Settings (`Cmd+,` / `Ctrl+,`)
 2. Sök efter "bridge.model"
@@ -35,16 +34,16 @@ Standardmodellen är `mistral`.
 
 ## Felsökning
 
-### "Could not connect to local AI. Is Ollama running?"
+### "Could not connect to local AI. Is the local model running?"
 
-- Kontrollera att Ollama körs: `ollama serve` i terminalen
-- Verifiera att modellen finns installerad: `ollama list`
-- Om modellen saknas, installera den: `ollama pull mistral` (eller din valda modell)
+- Kontrollera att din lokala AI-server körs.
+- Verifiera att modellen finns installerad i din lokala miljö.
+- Om modellen saknas, installera den med respektive verktyg.
 
 ### Extension svarar inte
 
 - Kontrollera att du har markerat text innan du kör kommandot
-- Kontrollera att Ollama-modellen är korrekt konfigurerad i Settings
+- Kontrollera att modellen är korrekt konfigurerad i Settings
 
 ## Utveckling
 

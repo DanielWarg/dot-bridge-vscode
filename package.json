@@ -1,7 +1,7 @@
 {
   "name": ".bridge",
   "displayName": ".bridge - Developer Tone Translator",
-  "description": "Hjälper utvecklare att omformulera teknisk text till professionell text med lokal AI via Ollama",
+  "description": "Hjälper utvecklare att omformulera teknisk text till professionell text med lokal AI",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.74.0"
@@ -49,7 +49,7 @@
         "bridge.model": {
           "type": "string",
           "default": "mistral",
-          "description": "Ollama model to use (mistral recommended for best reasoning)"
+          "description": "Local model to use (mistral recommended for best reasoning)"
         }
       }
     }

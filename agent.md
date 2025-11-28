@@ -23,28 +23,28 @@
 ## 1. Syfte och Scope
 
 – **Projekt:** .bridge
-– **Mål:** VS Code Extension som hjälper utvecklare att omformulera teknisk/kort text till professionell text direkt i editorn med lokal AI via Ollama
+– **Mål:** VS Code Extension som hjälper utvecklare att omformulera teknisk/kort text till professionell text direkt i editorn med en lokal AI-modell
 – **Scope:** 
   - Kommando för att omformulera markerad text till professionell text
-  - Integration med lokal Ollama-instans
+  - Integration med lokal AI-instans (HTTP API på port 11434)
   - Konfigurerbar modellval
   - Progress-indikator för användaren
 – **Out of scope:** 
   - Streaming responses (använder non-streaming API)
   - Flera språk (endast svenska prompts för nu)
-  - Cloud-baserad AI (endast lokal Ollama)
+  - Cloud-baserad AI (endast lokal bearbetning)
 
 ## 2. Affärsregler
 
 – Användaren måste ha markerat text innan kommandot körs
-– Ollama måste köra lokalt på port 11434
+– Lokal AI-service måste köra på port 11434
 – Modellnamn konfigureras via VS Code Settings (bridge.model)
 – Vid fel ska tydligt felmeddelande visas till användaren
 **Verifieras genom:** Manuell testning och felhantering i koden
 
 ## 3. Teknisk Arkitektur
 
-Stack: TypeScript · VS Code Extension API · Node-fetch · Ollama API · Kodstil: TypeScript strict mode
+Stack: TypeScript · VS Code Extension API · Node-fetch · Lokal AI HTTP API · Kodstil: TypeScript strict mode
 
 Repo:
 
@@ -60,7 +60,7 @@ tsconfig.json
 
 ## 4. Lokal Körning (2-kommando-garanti)
 
-1. Starta Ollama: `ollama serve` (eller kör i bakgrunden)
+1. Starta din lokala AI-service (ex. `mistral`-server)
 2. Debug extension: Tryck `F5` i VS Code (öppnar nytt fönster med extension aktiverad)
 
 ## 5. CI "Local-First" Policy
@@ -69,8 +69,8 @@ Kör lokalt innan push: `npm run compile` (fail lokalt ⇒ ingen push).
 
 ## 6. API-Kontrakt
 
-Endpoint: `http://localhost:11434/api/generate` · Request: `{ "model": "llama3.2", "prompt": "...", "system": "...", "stream": false }` · Response: `{ "response": "..." }`
-Fel: Tydligt felmeddelande "❌ Could not connect to local AI. Is Ollama running?"
+Endpoint: `http://localhost:11434/api/generate` · Request: `{ "model": "mistral", "prompt": "...", "system": "...", "stream": false }` · Response: `{ "response": "..." }`
+Fel: Tydligt felmeddelande "❌ Could not connect to local AI. Is the service running?"
 
 ## 7. Definition of Done (DoD)
 
@@ -132,14 +132,14 @@ Tabell med vanliga fel (venv, CORS, port, versionsmismatch) och lösning.
 ## 17. Miljövariabler
 
 Inga miljövariabler krävs. Konfiguration görs via VS Code Settings:
-- `bridge.model`: Ollama-modellnamn (default: "llama3.2")
+- `bridge.model`: Modellnamn (default: "mistral")
 
-Ollama körs lokalt på standardport 11434.
+Den lokala AI-tjänsten körs på standardport 11434.
 
 ## 18. Risker & Begränsningar
 
-Ollama inte körande → Tydligt felmeddelande till användaren
-Fel modellnamn i konfiguration → Ollama API returnerar fel, hanteras via error handling
+Lokal AI-tjänst inte körande → Tydligt felmeddelande till användaren
+Fel modellnamn i konfiguration → API:et returnerar fel, hanteras via error handling
 Långsam lokal modell → Progress-indikator visar att bearbetning pågår
 Begränsning: Endast non-streaming API (kan vara långsamt för långa texter)
 
