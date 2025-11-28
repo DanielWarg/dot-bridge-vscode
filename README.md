@@ -1,9 +1,9 @@
-# .bridge
+# .bridge.
 
 <div align="center">
 
 ```text
-.  b  r  i  d  g  e
+ .  b  r  i  d  g  e  .
 [ localhost :: 11434 ]
 ```
 
