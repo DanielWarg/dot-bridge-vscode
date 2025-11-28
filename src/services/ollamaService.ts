@@ -277,6 +277,15 @@ function validateInput(text: string): { safe: boolean; reason?: string } {
 }
 
 /**
+ * 💰 ENTERPRISE LICENSE VALIDATION
+ * V1 Logic: En enkel check. I framtiden kan vi ha en licensserver.
+ */
+function validateLicense(key: string): boolean {
+  // En giltig nyckel måste börja med "ENT-" och vara minst 20 tecken.
+  return !!(key && key.startsWith('ENT-') && key.length >= 20);
+}
+
+/**
  * Den centrala AI-bryggan.
  * Hanterar Konfig, Säkerhet, Timeout och Nätverk.
  */
@@ -309,11 +318,31 @@ export async function bridgeText(
   const apiBaseUrl =
     config.get<string>('apiBaseUrl') || 'http://localhost:11434'; // Default: Localhost
   const model = config.get<string>('model') || 'mistral'; // Default: Mistral (stabilare än llama3.2)
+  const licenseKey = config.get<string>('licenseKey') || '';
 
   // 3.1. 🚨 SSRF-SKYD: Validera URL innan användning
   if (!isValidUrl(apiBaseUrl)) {
     console.error(`[Bridge Security] Invalid API URL blocked: ${apiBaseUrl}`);
     return `⛔ Ogiltig API URL konfigurerad. Kontakta administratören.`;
+  }
+
+  // 3.2. 💰 ENTERPRISE CHECK (The Money Maker)
+  // Normalisera URL för att undvika bypass (t.ex. http://localhost.evil.com)
+  let isLocal = false;
+  try {
+    const urlObj = new URL(apiBaseUrl);
+    isLocal =
+      urlObj.hostname === 'localhost' ||
+      urlObj.hostname === '127.0.0.1' ||
+      urlObj.hostname === '::1';
+  } catch (e) {
+    return '❌ Ogiltig URL konfiguration.';
+  }
+
+  if (!isLocal) {
+    if (!validateLicense(licenseKey)) {
+      return `🔒 **ENTERPRISE FEATURE LOCKED**\n\nDu försöker ansluta till en central AI-server (${apiBaseUrl}). Detta kräver en Enterprise-licens.\n\n**För privat bruk (Gratis):**\nÄndra 'bridge.apiBaseUrl' till 'http://localhost:11434'.\n\n**För företag:**\nKontakta din IT-avdelning eller Daniel för en licensnyckel (Startar på 'ENT-').`;
+    }
   }
 
   // 4. ⏱️ TIMEOUT (Driftsäkerhet)
@@ -325,16 +354,16 @@ export async function bridgeText(
     const response = await fetch(`${apiBaseUrl}/api/generate`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: model,
-        system: systemPrompt, // Här skickar vi med Arkitekten/Diplomaten
-        prompt: userText, // Användarens (saniterade) text
-        stream: false, // Vi vill ha hela svaret på en gång (enklare hantering)
-        options: {
-          temperature: 0.1, // 🧊 LÅG TEMP = Deterministisk, professionell, inga hallucinationer.
-          num_ctx: 4096, // Kontextfönster (så den minns längre texter)
-        },
-      }),
+            body: JSON.stringify({
+              model: model,
+              system: systemPrompt, // Här skickar vi med Ghostwriter-prompten
+              prompt: userText, // Användarens (saniterade) text - modellen vet att den ska basera allt på detta
+              stream: false, // Vi vill ha hela svaret på en gång (enklare hantering)
+              options: {
+                temperature: 0.1, // 🧊 LÅG TEMP = Deterministisk, professionell, inga hallucinationer.
+                num_ctx: 4096, // Kontextfönster (så den minns längre texter)
+              },
+            }),
       signal: controller.signal, // Koppla timeout-signalen till anropet
     });
 

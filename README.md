@@ -7,9 +7,9 @@
         [ localhost :: 11434 ]
 ```
 
-![alt text](https://img.shields.io/badge/Architecture-Local_Only-success?style=flat-square)
-![alt text](https://img.shields.io/badge/Security-Red_Team_Hardened-important?style=flat-square)
-![alt text](https://img.shields.io/badge/Telemetry-None-lightgrey?style=flat-square)
+![Architecture](https://img.shields.io/badge/Architecture-Local_Only-success?style=flat-square)
+![Security](https://img.shields.io/badge/Security-Red_Team_Hardened-important?style=flat-square)
+![Telemetry](https://img.shields.io/badge/Telemetry-None-lightgrey?style=flat-square)
 
 **Deploy Empathy to Production.**
 
@@ -67,7 +67,7 @@ This codebase has undergone a full-spectrum Red Team audit.
 
 - **SSRF Protection:** Strict URL validation prevents internal network scanning via the extension.
 - **Input Sanitization:** Regex guardrails actively block Prompt Injection, Leetspeak, and Unicode Homoglyph attacks.
-- **DoS Mitigation:** Hard limits on input length (100k chars) and connection timeouts (60s) ensure VS Code stability.
+- **DoS Mitigation:** Hard limits on input length (100k chars) and connection timeouts (60s).
 - **Rate Limiting:** 10 requests/minute per session prevents resource exhaustion.
 - **Encoding Detection:** Base64 and URL-encoding attempts are blocked before processing.
 
@@ -105,10 +105,10 @@ ollama serve
 
 ### 3.2 Extension Setup
 
-1. Clone or download this repository
-2. Open in VS Code
-3. Run `npm install`
-4. Press `F5` to launch extension development host
+1. Download the `.vsix` file (from releases).
+2. In VS Code, go to **Extensions**.
+3. Click **...** (Views and More Actions) > **Install from VSIX...**.
+4. Select the file. Done.
 
 ---
 
@@ -141,7 +141,7 @@ graph LR
     Input[Raw Input] --> Sanitizer[Regex Guardrails];
     Sanitizer -- Threat Detected --> Block[Reject Request];
     Sanitizer -- Safe --> Gateway[API Gateway];
-    Gateway -->|Local Socket| LLM[Local AI / Mistral];
+    Gateway -->|Local Socket| LLM[Ollama / Mistral];
     LLM -->|Processed Text| Output[VS Code Diff View];
 ```
 
@@ -175,39 +175,9 @@ graph LR
 
 ---
 
-## 8.0 DEVELOPMENT
+## 8.0 SEE ALSO
 
-### Build
-
-```bash
-npm run compile
-```
-
-### Watch Mode
-
-```bash
-npm run watch
-```
-
-### Package Extension
-
-```bash
-npm run package
-```
-
-Creates a `.vsix` file for distribution.
-
----
-
-## 9.0 LICENSE
-
-MIT
-
----
-
-## 10.0 SEE ALSO
-
-- [Security Final Report](./SECURITY_FINAL_REPORT.md) - Complete security audit documentation
+- [Security Final Report](./SECURITY_FINAL_REPORT.md) - Complete audit documentation
 - [Ollama Documentation](https://ollama.com/docs) - Local AI setup guide
 
 ---

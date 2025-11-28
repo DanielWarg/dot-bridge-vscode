@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 import { bridgeText } from './services/ollamaService';
-import { DIPLOMAT_SYSTEM_PROMPT } from './prompts/diplomat';
+import { buildDiplomatPrompt } from './prompts/diplomat';
 
 export function activate(context: vscode.ExtensionContext) {
   const diplomatCommand = vscode.commands.registerCommand(
@@ -31,10 +31,14 @@ export function activate(context: vscode.ExtensionContext) {
         },
         async (progress) => {
           try {
-            const bridgedText = await bridgeText(
-              selectedText,
-              DIPLOMAT_SYSTEM_PROMPT
-            );
+            // Hämta target language från konfiguration
+            const config = vscode.workspace.getConfiguration('bridge');
+            const targetLanguage = config.get<string>('targetLanguage') || 'English';
+            
+            // Bygg prompt baserat på valt språk
+            const systemPrompt = buildDiplomatPrompt(targetLanguage);
+            
+            const bridgedText = await bridgeText(selectedText, systemPrompt);
 
             // Öppna nytt fönster bredvid med preview
             const doc = await vscode.workspace.openTextDocument({
