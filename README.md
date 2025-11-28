@@ -3,8 +3,8 @@
 <div align="center">
 
 ```text
-      .  b  r  i  d  g  e  .
-      [ localhost :: 11434 ]
+        .  b  r  i  d  g  e  .
+        [ localhost :: 11434 ]
 ```
 
 ![alt text](https://img.shields.io/badge/Architecture-Local_Only-success?style=flat-square)
