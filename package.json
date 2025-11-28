@@ -10,24 +10,14 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:bridge.diplomat",
-    "onCommand:bridge.techspec",
-    "onCommand:bridge.bugreport"
+    "onCommand:bridge.diplomat"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "bridge.diplomat",
-        "title": "Bridge: Socialize Text"
-      },
-      {
-        "command": "bridge.techspec",
-        "title": "Bridge: Generate Tech Spec"
-      },
-      {
-        "command": "bridge.bugreport",
-        "title": "Bridge: Create Bug Report"
+        "title": "Bridge: Translate / Polish"
       }
     ],
     "keybindings": [
@@ -55,6 +45,12 @@
           "type": "string",
           "default": "mistral",
           "description": "Namnet på modellen som ska användas (t.ex. mistral, llama3.2)."
+        },
+        "bridge.targetLanguage": {
+          "type": "string",
+          "enum": ["English", "Swedish"],
+          "default": "English",
+          "description": "Target language for the translation/polish."
         }
       }
     }
