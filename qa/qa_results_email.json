@@ -1,0 +1,112 @@
+[
+  {
+    "id": 1,
+    "input": "Jag måste maila kunden (Acme Corp) och säga att releasen på fredag skiter sig. Vi hittade en kritisk säkerhetsbugg i sista sekunden. Vi behöver till måndag lunch. Be om ursäkt men var tydlig med att säkerhet går först.",
+    "output": " Subject: Critical Security Issue Delay in Release\n\nDear Acme Corp,\n\nI hope this message finds you well. I am writing to inform you about a critical security issue that has been identified in our upcoming release, scheduled for this Friday. Unfortunately, we have discovered a significant vulnerability at the last minute and will need to postpone the release until Monday lunchtime.\n\nWe deeply regret any inconvenience caused by this delay but would like to emphasize that the priority is ensuring the security of your data. We are working diligently to address the issue and will keep you updated on our progress.\n\nThank you for your understanding and cooperation in this matter.\n\nBest regards,\n[Your Name]\n\n### 💬 Status Update\n\n> **Summary**\n> Critical security issue found, release delayed until Monday lunchtime.\n\n**Context**\nDuring final testing of our upcoming release, a critical security vulnerability was discovered that requires immediate attention.\n\n**Next Steps**\n- Address the identified security issue and ensure it is resolved before releasing the update.\n- Communicate the delay to Acme Corp and provide updates on progress.",
+    "latency_ms": 8374,
+    "timestamp": "2025-11-28T20:01:26.587Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  },
+  {
+    "id": 2,
+    "input": "Skriv ett mail till projektledaren. De försöker smyga in 5 nya features i sprinten som redan är full. Säg nej, vänligt men bestämt. Vi kan ta det i nästa sprint.",
+    "output": " Subject: Re: Request for Additional Features in Current Sprint\n\nDear Project Leader,\n\nI hope this message finds you well. I am writing to discuss the recent request for the inclusion of five new features in the current sprint that is already at capacity.\n\nWhile we understand the desire to implement these features as soon as possible, it is important to maintain a balanced workload within each sprint to ensure quality and timely delivery. Adding more features at this stage may compromise our ability to deliver the existing tasks on time or with the desired level of quality.\n\nWe propose that these new features be considered for implementation in the next sprint instead. This approach will allow us to maintain our current pace while still accommodating your requests, ensuring a smooth workflow and high-quality output.\n\nBest regards,\n[Your Name]\n[Your Position]",
+    "latency_ms": 4938,
+    "timestamp": "2025-11-28T20:01:33.528Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  },
+  {
+    "id": 3,
+    "input": "Jag måste säga upp mig. Fått nytt jobb. Tack för allt, slutar om 3 månader. Vill ha ett snyggt avslut.",
+    "output": " Subject: Farewell Announcement\n\nDear Team,\n\nI am writing to inform you that I have accepted a new job offer and will be leaving the company after three months. I want to express my gratitude for the opportunities and experiences I've had during my tenure here.\n\nIn the coming weeks, I will do everything possible to ensure a smooth transition. I will hand over all my ongoing tasks and projects to a designated colleague or team member. If there are any specific tasks that need immediate attention, please let me know, and I will prioritize them accordingly.\n\nI am looking forward to staying in touch and hope to collaborate with many of you in the future. Thank you once again for your support and cooperation.\n\nBest regards,\n[Your Name]",
+    "latency_ms": 4632,
+    "timestamp": "2025-11-28T20:01:40.162Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  },
+  {
+    "id": 4,
+    "input": "Ska ha lönesamtal. Skriv ett mail där jag listar att jag roddat hela migrationen själv, mentorerat juniorerna och fixat on-call schemat. Jag vill diskutera en justering av lönen.",
+    "output": " Subject: Request for Salary Discussion\n\nDear [Recipient],\n\nI hope this message finds you well. I am writing to discuss a matter concerning my compensation, as I believe it is due for an adjustment. Over the past few months, I have taken on the responsibility of leading the migration project single-handedly, mentoring junior team members, and establishing an effective on-call schedule.\n\nIn light of these contributions, I would like to propose a review of my current salary to reflect the increased workload and responsibilities that I have undertaken. I am confident that this adjustment will be beneficial for both myself and the company.\n\nI look forward to discussing this matter further at your earliest convenience. Please let me know if there is a specific time or day that works best for you.\n\nBest regards,\n[Your Name]",
+    "latency_ms": 5039,
+    "timestamp": "2025-11-28T20:01:47.203Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  },
+  {
+    "id": 5,
+    "input": "Maila vår hosting-leverantör. Deras server har gått ner 4 gånger idag. Det kostar oss pengar. Vi kräver en förklaring och en åtgärdsplan (RCA). Var strikt.",
+    "output": " Subject: Urgent: Server Downtime Requiring RCA from Hosting Provider\n\nDear Hosting Provider,\n\nI hope this message finds you well. I am writing to bring your attention to an issue that has been affecting our services today - our server has gone down four times. This downtime is causing us significant financial loss and we require a thorough explanation and corrective action plan (RCA).\n\nPlease provide us with the following:\n1. A detailed explanation of the cause of the server downtimes.\n2. An immediate solution to prevent further occurrences.\n3. A long-term strategy to ensure the stability and reliability of our server.\n\nWe appreciate your prompt attention to this matter and look forward to your response.\n\nBest regards,\n[Your Name]\n\n--- FORMAT SLUT ---",
+    "latency_ms": 4999,
+    "timestamp": "2025-11-28T20:01:54.202Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  },
+  {
+    "id": 6,
+    "input": "Vaknade med feber. Blir borta idag och imorgon. Daniel tar standupen. Jag kollar mailen sporadiskt.",
+    "output": " Subject: Out of Office Notification - Temporary Absence\n\nDear Team,\n\nI regret to inform you that I will be out of office today and tomorrow due to a sudden illness. In my absence, Daniel will take over the standup meetings. I will check my emails sporadically, but for urgent matters, please contact Daniel directly.\n\nBest regards,\n[Your Name]\n\n--- STATUS UPDATE ---\n\n### 💬 Status Update\n\n> **Summary**\n> (I will be out of office today and tomorrow due to a sudden illness.)\n\n**Context**\n(I have fallen ill and will not be able to attend work for the next two days.)\n\n**Next Steps**\n- Daniel will take over the standup meetings.\n- I will check my emails sporadically, but for urgent matters, please contact Daniel directly.",
+    "latency_ms": 5338,
+    "timestamp": "2025-11-28T20:02:01.541Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  },
+  {
+    "id": 7,
+    "input": "Tja, behöver maila Backend-teamet. Deras API-dokumentation stämmer inte med verkligheten. Jag kan inte integrera mot /orders. Kan ni uppdatera wikin?",
+    "output": " Subject: Update on Inconsistency with Backend API Documentation\n\nDear Backend Team,\n\nI have encountered an inconsistency between the current API documentation and the actual implementation regarding the integration of /orders. I am unable to proceed with the integration as planned due to this discrepancy.\n\nTo resolve this issue, I kindly request that you update the wiki to reflect the accurate API structure for /orders. This will ensure a smooth integration process moving forward.\n\nBest regards,\n[Your Name]",
+    "latency_ms": 3256,
+    "timestamp": "2025-11-28T20:02:06.799Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  },
+  {
+    "id": 8,
+    "input": "Vi behöver licenser för JetBrains/IntelliJ till hela teamet. VS Code duger inte för Java-backend. Det kostar 5000 kr/år men vi sparar massa tid. Motivera kostnaden.",
+    "output": " Subject: Request for JetBrains/IntelliJ Licenses for the Entire Team\n\nDear [Recipient],\n\nI hope this message finds you well. I am writing to discuss a matter concerning our team's development tools.\n\nCurrently, we are using Visual Studio Code (VS Code) for our Java backend projects. However, we have found that VS Code does not meet our needs as effectively as JetBrains/IntelliJ IDEA. The latter offers superior functionality and productivity features that would significantly improve our workflow.\n\nThe cost for a yearly license for the entire team is 5000 kr. While this may seem high, it is important to consider the time and resources we will save in the long run by using more efficient tools. I am more than happy to provide further details and justification if needed.\n\nBest regards,\n[Your Name]\n\n--- STATUS UPDATE ---\n\n### 💬 Status Update\n\n> **Summary**\n> Request for JetBrains/IntelliJ Licenses for the Entire Team.\n\n**Context**\nVS Code is currently being used for our Java backend projects, but it does not meet our needs as effectively as JetBrains/IntelliJ IDEA. The latter offers superior functionality and productivity features that would significantly improve our workflow.\n\n**Next Steps**\n- Research the cost of yearly licenses for the entire team.\n- Prepare a justification for the cost and present it to [Recipient's Name].\n- If approved, proceed with purchasing the licenses and distributing them to the team.",
+    "latency_ms": 9498,
+    "timestamp": "2025-11-28T20:02:18.299Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  },
+  {
+    "id": 9,
+    "input": "Skriv ett mail till ledningen om varför sajten låg nere igår. Det var en DDoS-attack. Vi hanterade det på 30 minuter genom att slå på Cloudflare. Ingen data läckte. Allt är lugnt nu.",
+    "output": " Subject: Site Downtime Incident on [Current Date]\n\nDear Leadership Team,\n\nI am writing to inform you about the unexpected downtime of our website that occurred yesterday. The cause was identified as a DDoS attack. We swiftly addressed the issue within 30 minutes by enabling Cloudflare. I am pleased to report that no data breaches were detected during this incident and the site is currently functioning normally.\n\nBest regards,\n[Your Name]\n\n--- STATUS UPDATE ---\n\n### 💬 Status Update\n\n> **Summary**\n> Site was down due to a DDoS attack on [Current Date].\n\n**Context**\nOur website experienced an unexpected downtime yesterday as a result of a DDoS attack. However, we were able to quickly resolve the issue by activating Cloudflare within 30 minutes.\n\n**Next Steps**\n- Monitor site performance for any potential issues.\n- Review and update our security measures to prevent future attacks.",
+    "latency_ms": 6199,
+    "timestamp": "2025-11-28T20:02:26.499Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  },
+  {
+    "id": 10,
+    "input": "Välkomstmail till nya utvecklaren Lisa som börjar på måndag. Säg att vi är taggade, hon ska få sin laptop kl 09, och vi käkar lunch 12. Bifoga länk till vår onboarding-wiki.",
+    "output": " Subject: Welcome to Our Team, Lisa!\n\nDear Lisa,\n\nWelcome aboard! We are thrilled to have you join our team starting Monday.\n\nRegarding your laptop, it will be ready for pickup at 9 AM on Monday. You can find your workstation set up accordingly.\n\nWe've scheduled lunch together at 12 PM on Monday as well. Please feel free to ask any questions or clarify doubts during this time.\n\nFor a comprehensive overview of our company, processes, and expectations, please refer to the Onboarding Wiki linked below:\n\n[Onboarding Wiki Link]\n\nWe look forward to working with you!\n\nBest regards,\nThe Development Team\n\n--- FORMAT SLUT ---",
+    "latency_ms": 4659,
+    "timestamp": "2025-11-28T20:02:33.159Z",
+    "hasEmailFormat": true,
+    "hasSubject": true,
+    "hasGreeting": true,
+    "hasClosing": true
+  }
+]

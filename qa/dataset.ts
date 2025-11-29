@@ -51,3 +51,4 @@ export const TEST_CASES = [
   'Bra jobbat med releasen! Men vi glömde uppdatera versionsnumret i footern.',
 ];
 
+

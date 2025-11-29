@@ -19,3 +19,4 @@ d.line([(95, 103), (115, 103)], fill=color, width=width)
 img.save('icon.png')
 print("✅ Ikon skapad: icon.png")
 
+

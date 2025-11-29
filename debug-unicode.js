@@ -30,3 +30,4 @@ for (const [unicode, ascii] of Object.entries(map)) {
   console.log(`U+${code.toString(16).toUpperCase().padStart(4, '0')} (${unicode}) -> ${ascii}`);
 }
 
+
