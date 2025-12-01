@@ -4,7 +4,7 @@ import { buildDiplomatPrompt } from './prompts/diplomat';
 
 export function activate(context: vscode.ExtensionContext) {
   const diplomatCommand = vscode.commands.registerCommand(
-    'bridge.diplomat',
+    'bridge',
     async () => {
       const editor = vscode.window.activeTextEditor;
 

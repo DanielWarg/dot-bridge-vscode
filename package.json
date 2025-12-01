@@ -1,8 +1,9 @@
 {
   "name": "bridge-dot-one",
   "displayName": ".bridge - Developer Tone Translator",
-  "description": "Hjälper utvecklare att omformulera teknisk text till professionell text med lokal AI",
+  "description": "Translate raw developer thoughts into professional communication using local AI",
   "version": "0.0.1",
+  "publisher": "danielwarg",
   "icon": "icon.png",
   "repository": {
     "type": "git",
@@ -15,25 +16,25 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:bridge.diplomat"
+    "onCommand:bridge"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
       {
-        "command": "bridge.diplomat",
+        "command": "bridge",
         "title": "Bridge: Translate / Polish"
       }
     ],
     "keybindings": [
       {
-        "command": "bridge.diplomat",
+        "command": "bridge",
         "key": "cmd+shift+b",
         "mac": "cmd+shift+b",
         "when": "editorTextFocus"
       },
       {
-        "command": "bridge.diplomat",
+        "command": "bridge",
         "key": "ctrl+shift+b",
         "when": "editorTextFocus && !isMac"
       }
@@ -44,12 +45,12 @@
         "bridge.apiBaseUrl": {
           "type": "string",
           "default": "http://localhost:11434",
-          "description": "URL till AI API. Ändra denna om du kör mot en central företagsserver."
+          "description": "URL to the AI API. Change this if you're using a centralized enterprise server."
         },
         "bridge.model": {
           "type": "string",
           "default": "mistral",
-          "description": "Namnet på modellen som ska användas (t.ex. mistral, llama3.2)."
+          "description": "Name of the model to use (e.g., mistral, llama3.2)."
         },
         "bridge.targetLanguage": {
           "type": "string",
