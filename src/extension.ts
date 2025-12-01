@@ -9,7 +9,7 @@ export function activate(context: vscode.ExtensionContext) {
       const editor = vscode.window.activeTextEditor;
 
       if (!editor) {
-        vscode.window.showErrorMessage('Ingen aktiv editor öppen.');
+        vscode.window.showErrorMessage('No active editor open.');
         return;
       }
 
@@ -18,7 +18,7 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (!selectedText) {
         vscode.window.showErrorMessage(
-          'Ingen text är markerad. Markera texten du vill omformulera.'
+          'No text selected. Please select the text you want to polish.'
         );
         return;
       }
@@ -54,7 +54,7 @@ export function activate(context: vscode.ExtensionContext) {
             const errorMessage =
               error instanceof Error
                 ? error.message
-                : 'Ett okänt fel uppstod.';
+                : 'An unknown error occurred.';
             vscode.window.showErrorMessage(errorMessage);
           }
         }

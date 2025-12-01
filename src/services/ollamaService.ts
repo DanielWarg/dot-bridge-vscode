@@ -257,7 +257,7 @@ function validateInput(text: string): { safe: boolean; reason?: string } {
   if (encodingCheck.isEncoded) {
     return {
       safe: false,
-      reason: `Säkerhetsvarning: Input verkar vara ${encodingCheck.type}-kodad. Encoding-försök är inte tillåtna.`,
+      reason: `Security warning: Input appears to be ${encodingCheck.type}-encoded. Encoding attempts are not allowed.`,
     };
   }
 
@@ -269,7 +269,7 @@ function validateInput(text: string): { safe: boolean; reason?: string } {
     if (pattern.test(normalized)) {
       return {
         safe: false,
-        reason: `Säkerhetsvarning: Input innehåller förbjudet mönster`,
+        reason: `Security warning: Input contains forbidden pattern`,
       };
     }
   }
@@ -296,12 +296,12 @@ export async function bridgeText(
   // 0. 🚦 RATE LIMITING: Kontrollera först (sparar resurser)
   const rateLimitCheck = checkRateLimit();
   if (!rateLimitCheck.allowed) {
-    return `⚠️ För många förfrågningar. Vänta ${rateLimitCheck.retryAfter} sekunder innan du försöker igen.`;
+    return `⚠️ Too many requests. Please wait ${rateLimitCheck.retryAfter} seconds before trying again.`;
   }
 
   // 1. 🧱 DoS-SKYD: Kontrollera input-längd
   if (userText.length > MAX_INPUT_LENGTH) {
-    return `⚠️ Input för stor. Max ${MAX_INPUT_LENGTH} tecken tillåtet.`;
+    return `⚠️ Input too large. Maximum ${MAX_INPUT_LENGTH} characters allowed.`;
   }
 
   // 2. 🛡️ SÄKERHETSCHECK (Input Sanitization)
@@ -309,7 +309,7 @@ export async function bridgeText(
   const securityCheck = validateInput(userText);
   if (!securityCheck.safe) {
     console.warn(`[Bridge Security] Blocked input: ${securityCheck.reason}`);
-    return `⛔ ${securityCheck.reason}. Förfrågan avvisades av säkerhetsskäl.`;
+    return `⛔ ${securityCheck.reason}. Request blocked for security reasons.`;
   }
 
   // 3. ⚙️ HÄMTA KONFIGURATION (Enterprise Compliance)
@@ -323,7 +323,7 @@ export async function bridgeText(
   // 3.1. 🚨 SSRF-SKYD: Validera URL innan användning
   if (!isValidUrl(apiBaseUrl)) {
     console.error(`[Bridge Security] Invalid API URL blocked: ${apiBaseUrl}`);
-    return `⛔ Ogiltig API URL konfigurerad. Kontakta administratören.`;
+    return `⛔ Invalid API URL configured. Please contact your administrator.`;
   }
 
   // 3.2. 💰 ENTERPRISE CHECK (The Money Maker)
@@ -331,12 +331,11 @@ export async function bridgeText(
   let isLocal = false;
   try {
     const urlObj = new URL(apiBaseUrl);
-    isLocal =
-      urlObj.hostname === 'localhost' ||
-      urlObj.hostname === '127.0.0.1' ||
-      urlObj.hostname === '::1';
+    const hostname = urlObj.hostname.toLowerCase();
+    const localhostVariants = ['localhost', '127.0.0.1', '::1', '0.0.0.0'];
+    isLocal = localhostVariants.includes(hostname);
   } catch (e) {
-    return '❌ Ogiltig URL konfiguration.';
+    return '❌ Invalid URL configuration.';
   }
 
   if (!isLocal) {
@@ -411,6 +410,25 @@ export async function bridgeText(
       cleanResponse = cleanResponse.slice(1, -1);
     }
 
+    // 5.2. 🛡️ CONTENT MODERATION (The Safety Net)
+    // Blockera kända problematiska termer i output (sista försvarslinjen)
+    const harmfulPatterns = [
+      // Historiska diktatorer/krigsförbrytare (i hyllande kontext)
+      /\b(hitler|nazi|holocaust.*denial|genocide.*justified)\b/i,
+      // Extremistiska ideologier (i positiv kontext)
+      /\b(white.*supremacy|racial.*superiority|ethnic.*cleansing)\b/i,
+      // Våldsbejakande innehåll
+      /\b(kill.*all|exterminate.*group|violence.*against.*minority)\b/i,
+    ];
+
+    // Om output innehåller problematiskt innehåll, blockera det
+    for (const pattern of harmfulPatterns) {
+      if (pattern.test(cleanResponse)) {
+        console.warn('[Bridge Security] Blocked harmful content in output');
+        return '⚠️ This content cannot be processed as it contains inappropriate material.';
+      }
+    }
+
     return cleanResponse;
   } catch (error: any) {
     clearTimeout(timeoutId);
@@ -425,15 +443,15 @@ export async function bridgeText(
 
     // Snygg felhantering för användaren (utan känslig info)
     if (error.name === 'AbortError') {
-      return '⚠️ Timeout: AI-modellen svarade inte inom 60 sekunder. Är din dator belastad eller modellen för stor?';
+      return '⚠️ Timeout: The AI model did not respond within 60 seconds. Is your computer under heavy load or is the model too large?';
     }
 
     // Hantera anslutningsfel (vanligast) - generiskt meddelande
     if (error.code === 'ECONNREFUSED') {
-      return `❌ Kunde inte ansluta till den konfigurerade AI-servern.\n\nTips: Kontrollera att AI-tjänsten körs.`;
+      return `❌ Could not connect to the configured AI server.\n\nTip: Make sure the AI service is running.`;
     }
 
     // Generiskt felmeddelande för användaren
-    return `❌ Ett fel uppstod vid kommunikation med AI-servern. Kontrollera konfigurationen.`;
+    return `❌ An error occurred while communicating with the AI server. Please check your configuration.`;
   }
 }
