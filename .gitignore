@@ -4,6 +4,13 @@ node_modules
 *.vsix
 .DS_Store
 
+# Development files
+agent.md
+plan.md
+
+# Generated test results
+qa/qa_results.json
+
 
 
 
