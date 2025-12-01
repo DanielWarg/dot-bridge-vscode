@@ -13,6 +13,7 @@ const SECURITY_PATTERNS = [
   /skriv en dikt/i, // Specifikt skydd mot dikt-attacker ;)
   /--- MALL SLUT ---/i, // Försök att fejka system-slut
   /simulera/i,
+  /simulate/i, // English version of simulate attack
 ];
 
 // 🧱 DoS-skydd: Max input length
