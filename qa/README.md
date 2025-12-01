@@ -1,51 +1,51 @@
 # QA Suite - Automated Testing
 
-Detta är en automatiserad kvalitetskontroll (QA) för .bridge extensionen.
+This is an automated quality assurance (QA) suite for the .bridge extension.
 
 ## Setup
 
-1. Se till att Ollama körs lokalt:
+1. Make sure Ollama is running locally:
    ```bash
    ollama serve
    ```
 
-2. Se till att Mistral-modellen är installerad:
+2. Make sure the Mistral model is installed:
    ```bash
    ollama pull mistral
    ```
 
-## Kör QA-sviten
+## Running the QA Suite
 
-### Med ts-node (Rekommenderat)
+### With ts-node (Recommended)
 
 ```bash
 cd qa
 npx ts-node runner.ts
 ```
 
-### Kompilera först
+### Compile First
 
 ```bash
-# Kompilera
+# Compile
 npx tsc --project qa/tsconfig.json
 
-# Kör
+# Run
 node out/qa/runner.js
 ```
 
-## Vad gör scriptet?
+## What does the script do?
 
-1. Läser in 50 test cases från `qa/dataset.ts`
-2. För varje test case:
-   - Anropar Ollama (Mistral) med Universal Prompt
-   - Mäter latens (response time)
-   - Sparar resultatet
-   - Väntar 3 sekunder (cool-down)
-3. Sparar alla resultat i `qa/qa_results.json`
+1. Loads 50 test cases from `qa/dataset.ts`
+2. For each test case:
+   - Calls Ollama (Mistral) with Universal Prompt
+   - Measures latency (response time)
+   - Saves the result
+   - Waits 3 seconds (cool-down)
+3. Saves all results to `qa/qa_results.json`
 
-## Resultat
+## Results
 
-Resultaten sparas i `qa/qa_results.json` med följande struktur:
+Results are saved in `qa/qa_results.json` with the following structure:
 
 ```json
 [
@@ -60,12 +60,12 @@ Resultaten sparas i `qa/qa_results.json` med följande struktur:
 ]
 ```
 
-## Analysera resultat
+## Analyze Results
 
-Kör analys-scriptet:
+Run the analysis script:
 
 ```bash
 python3 analyze_results.py
 ```
 
-Detta ger dig en översikt över kvaliteten på översättningarna.
+This gives you an overview of the quality of the translations.
