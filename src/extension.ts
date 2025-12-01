@@ -35,8 +35,8 @@ export function activate(context: vscode.ExtensionContext) {
             const config = vscode.workspace.getConfiguration('bridge');
             const targetLanguage = config.get<string>('targetLanguage') || 'English';
             
-            // Bygg prompt baserat på valt språk
-            const systemPrompt = buildDiplomatPrompt(targetLanguage);
+            // HÄR sker magin: Vi bygger rätt prompt baserat på texten
+            const systemPrompt = buildDiplomatPrompt(selectedText, targetLanguage);
             
             const bridgedText = await bridgeText(selectedText, systemPrompt);
 

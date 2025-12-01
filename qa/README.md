@@ -16,19 +16,14 @@ Detta är en automatiserad kvalitetskontroll (QA) för .bridge extensionen.
 
 ## Kör QA-sviten
 
-### Metod 1: Med ts-node (Rekommenderat)
+### Med ts-node (Rekommenderat)
 
 ```bash
-npx ts-node --project qa/tsconfig.json qa/runner.ts
+cd qa
+npx ts-node runner.ts
 ```
 
-Eller om du har ts-node installerat globalt:
-
-```bash
-ts-node --project qa/tsconfig.json qa/runner.ts
-```
-
-### Metod 2: Kompilera först
+### Kompilera först
 
 ```bash
 # Kompilera
@@ -42,10 +37,10 @@ node out/qa/runner.js
 
 1. Läser in 50 test cases från `qa/dataset.ts`
 2. För varje test case:
-   - Anropar Ollama (Mistral) med Translator-prompten
+   - Anropar Ollama (Mistral) med Universal Prompt
    - Mäter latens (response time)
    - Sparar resultatet
-   - Väntar 2 sekunder (cool-down)
+   - Väntar 3 sekunder (cool-down)
 3. Sparar alla resultat i `qa/qa_results.json`
 
 ## Resultat
@@ -67,5 +62,10 @@ Resultaten sparas i `qa/qa_results.json` med följande struktur:
 
 ## Analysera resultat
 
-Du kan sedan mata in `qa_results.json` i Claude/ChatGPT för automatisk betygsättning av kvaliteten på översättningarna.
+Kör analys-scriptet:
 
+```bash
+python3 analyze_results.py
+```
+
+Detta ger dig en översikt över kvaliteten på översättningarna.

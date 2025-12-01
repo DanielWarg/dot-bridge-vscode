@@ -3,46 +3,46 @@ import { TEST_CASES } from './dataset';
 import * as fs from 'fs';
 import * as path from 'path';
 
-// Super Prompt (Ghostwriter version - uppdaterad med Anti-Hallucination Guard)
+// Universal Prompt (enkel version - ingen format detection)
 function buildDiplomatPrompt(targetLang: string): string {
-  const langInstruction =
-    targetLang === 'Swedish' ? 'Svenska.' : 'English (Tech Standard).';
+  const langInstruction = targetLang === 'Swedish' 
+    ? 'Svenska (Professionell, affärsmässig ton).'
+    : 'English (Standard Tech English).';
 
-  return `Du är en Expert Tech Ghostwriter.
+  return `
+Du är en Expert Tech Communicator.
 
-Din uppgift är att polera utvecklarens råa text.
+Din uppgift är att polera och översätta texten nedan så att den blir professionell, tydlig och empatisk.
 
 MÅLSPRÅK: ${langInstruction}
 
-VIKTIGA REGLER:
+INSTRUKTIONER:
 
-1. **PERSPEKTIV:** Skriv alltid som "Jag" eller "Vi".
+1. **Analysera:** Förstå kärnbudskapet. Input kan vara slarvig, arg eller "svengelska".
 
-2. **TON:** Professionell, lugn, tekniskt korrekt.
+2. **Polera:** 
 
-3. **FORMAT:** Använd mallen nedan exakt.
+   - Rätta grammatik och stavning.
 
-⛔ HALLUCINATION GUARD (VIKTIGT):
+   - Byt ut aggressivt språk mot lösningsorienterat språk.
 
-- Du får **ALDRIG** hitta på tekniska detaljer som inte nämns i input.
-- Om användaren pratar om "CSS", skriv INTE om "Redux".
-- Om användaren pratar om "Bilder", skriv INTE om "Databaser".
-- Håll dig strikt till ämnet i input-texten.
+   - Behåll tekniska termer (t.ex. "Deploy", "Bugfix", "Pull Request").
 
---- MALL ---
+3. **Format:**
 
-### 💬 Status Update
+   - Behåll originalets struktur (om det ser ut som ett mail, behåll mail-formatet. Om det är en lista, behåll listan).
 
-> **Summary**
-> (En mening.)
+   - Inga inledande fraser ("Här är din text..."). Bara resultatet.
 
-**Context**
-(Förklaring.)
+4. **Perspektiv:** Skriv alltid som "Jag" eller "Vi".
 
-**Next Steps**
-- (Åtgärder.)
+5. **Sanning:** Hitta ALDRIG på tekniska detaljer (Inga gissningar om Redux/Databaser om det inte nämns).
 
---- MALL SLUT ---
+EXEMPEL PÅ TON:
+
+Input: "Fixa skiten, det kraschar."
+
+Output: "Vi behöver åtgärda problemet omgående då det orsakar krascher."
 
 INPUT ATT BEARBETA:
 `;
@@ -66,8 +66,13 @@ async function sleep(ms: number): Promise<void> {
 async function callOllama(input: string): Promise<{ response: string; latency_ms: number }> {
   const startTime = Date.now();
   
+  // Timeout efter 90 sekunder (använd Promise.race för node-fetch v2)
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('Timeout after 90 seconds')), 90000);
+  });
+  
   try {
-    const response = await fetch('http://localhost:11434/api/generate', {
+    const fetchPromise = fetch('http://localhost:11434/api/generate', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -81,6 +86,8 @@ async function callOllama(input: string): Promise<{ response: string; latency_ms
         },
       }),
     });
+    
+    const response = await Promise.race([fetchPromise, timeoutPromise]);
 
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${await response.text()}`);
@@ -95,8 +102,16 @@ async function callOllama(input: string): Promise<{ response: string; latency_ms
     };
   } catch (error: any) {
     const latency_ms = Date.now() - startTime;
+    
+    if (error.message && error.message.includes('Timeout')) {
+      return {
+        response: `ERROR: Timeout after 90 seconds`,
+        latency_ms,
+      };
+    }
+    
     return {
-      response: `ERROR: ${error.message}`,
+      response: `ERROR: ${error.message || 'Unknown error'}`,
       latency_ms,
     };
   }
@@ -112,7 +127,7 @@ async function runQA(): Promise<void> {
     const testCase = TEST_CASES[i];
     const id = i + 1;
 
-    console.log(`Processing ${id}/50...`);
+    console.log(`Processing ${id}/${TEST_CASES.length}...`);
     console.log(`Input: ${testCase.substring(0, 60)}...`);
 
     const { response, latency_ms } = await callOllama(testCase);
@@ -128,16 +143,27 @@ async function runQA(): Promise<void> {
     results.push(result);
 
     console.log(`✅ Completed in ${latency_ms}ms\n`);
+    
+    // Spara resultat efter varje test (så vi inte förlorar data om det fastnar)
+    const projectRoot = process.cwd().endsWith('qa') 
+      ? path.join(process.cwd(), '..')
+      : process.cwd();
+    const outputPath = path.join(projectRoot, 'qa', 'qa_results.json');
+    fs.writeFileSync(outputPath, JSON.stringify(results, null, 2), 'utf-8');
+    console.log(`💾 Progress saved (${results.length}/${TEST_CASES.length})\n`);
 
-    // Cool-down: Vänta 2 sekunder innan nästa anrop
+    // Cool-down: Vänta 3 sekunder innan nästa anrop
     if (i < TEST_CASES.length - 1) {
-      console.log('⏳ Cooling down (2s)...\n');
-      await sleep(2000);
+      console.log('⏳ Cooling down (3s)...\n');
+      await sleep(3000);
     }
   }
 
-  // Spara resultat
-  const outputPath = path.join(process.cwd(), 'qa', 'qa_results.json');
+  // Final save (redundant men säkert)
+  const projectRoot = process.cwd().endsWith('qa') 
+    ? path.join(process.cwd(), '..')
+    : process.cwd();
+  const outputPath = path.join(projectRoot, 'qa', 'qa_results.json');
   fs.writeFileSync(outputPath, JSON.stringify(results, null, 2), 'utf-8');
 
   console.log('✅ QA Suite completed!');
@@ -153,4 +179,3 @@ runQA().catch((error) => {
   console.error('❌ QA Suite failed:', error);
   process.exit(1);
 });
-
