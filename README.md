@@ -115,6 +115,18 @@ ollama pull mistral
 | `bridge.targetLanguage` | `English` | Output language. Set to `Swedish` for localization. |
 | `bridge.apiBaseUrl` | `http://localhost:11434` | Keep it local. |
 
+## 7.0 / COMMERCIAL & ENTERPRISE
+
+Need to deploy **bridge_dot_one** in a restricted environment with a centralized inference server?
+
+The Enterprise License unlocks:
+
+* **Remote Server Access:** Configure `bridge.apiBaseUrl` to point to internal GPU clusters (Azure/AWS/On-prem).
+* **Centralized Configuration:** Enforce settings via Group Policy.
+* **Support & SLA:** Priority implementation support.
+
+📩 **Contact:** [daniel@postboxen.se](mailto:daniel@postboxen.se) for licensing and volume pricing.
+
 ---
 
 **Built by developers who would rather write code than emails.**

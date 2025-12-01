@@ -341,7 +341,7 @@ export async function bridgeText(
 
   if (!isLocal) {
     if (!validateLicense(licenseKey)) {
-      return `🔒 **ENTERPRISE FEATURE LOCKED**\n\nDu försöker ansluta till en central AI-server (${apiBaseUrl}). Detta kräver en Enterprise-licens.\n\n**För privat bruk (Gratis):**\nÄndra 'bridge.apiBaseUrl' till 'http://localhost:11434'.\n\n**För företag:**\nKontakta din IT-avdelning eller Daniel för en licensnyckel (Startar på 'ENT-').`;
+      return `🔒 **ENTERPRISE FEATURE LOCKED**\n\nConnecting to a remote AI server (${apiBaseUrl}) requires an Enterprise License.\n\n**To unlock:** Contact daniel@postboxen.se for a license key.\n\n**Free mode:** Reset 'bridge.apiBaseUrl' to 'http://localhost:11434'.`;
     }
   }
 
