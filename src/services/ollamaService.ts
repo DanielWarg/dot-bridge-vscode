@@ -389,6 +389,28 @@ export async function bridgeText(
     cleanResponse = cleanResponse.replace(/SÄKERHETSPROTOKOLL:.*/gi, '');
     cleanResponse = cleanResponse.replace(/SÄKERHETSINSTRUKTION:.*/gi, '');
 
+    // 5.1. 🧹 AGGRESSIV STÄDNING (The Chatty Killer)
+    // Ta bort vanliga inledningsfraser som lokala modeller älskar
+    const prefixesToRemove = [
+      /^Here'?s a (polished|suggested|revised) version:?/i,
+      /^Here is the (polished|translated) text:?/i,
+      /^Sure,? (here is|I can help).*:?/i,
+      /^I have (rewritten|corrected|polished).*:?/i,
+      /^Output:?/i,
+      /^Translation:?/i,
+      /^Här är (ett förslag|den polerade versionen):?/i,
+      /^Jag har (omskrivit|korrigerat|polerat).*:?/i,
+    ];
+
+    prefixesToRemove.forEach(rx => {
+      cleanResponse = cleanResponse.replace(rx, '').trim();
+    });
+
+    // Ta bort citattecken i början och slut om hela texten är inom dem
+    if (cleanResponse.startsWith('"') && cleanResponse.endsWith('"')) {
+      cleanResponse = cleanResponse.slice(1, -1);
+    }
+
     return cleanResponse;
   } catch (error: any) {
     clearTimeout(timeoutId);
