@@ -7,6 +7,15 @@ tsconfig.json
 **/*.ts
 !out/**/*.js
 
+# Development files
+agent.md
+plan.md
+qa/**
+make_icon.py
+GIT_REVIEW.md
+PRODUCTION_READINESS_REVIEW.md
+
+
 
 
 

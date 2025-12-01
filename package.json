@@ -1,9 +1,13 @@
 {
-  "name": ".bridge",
+  "name": "bridge-dot-one",
   "displayName": ".bridge - Developer Tone Translator",
   "description": "Hjälper utvecklare att omformulera teknisk text till professionell text med lokal AI",
   "version": "0.0.1",
   "icon": "icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DanielWarg/dot-bridge-vscode.git"
+  },
   "engines": {
     "vscode": "^1.74.0"
   },
@@ -49,7 +53,10 @@
         },
         "bridge.targetLanguage": {
           "type": "string",
-          "enum": ["English", "Swedish"],
+          "enum": [
+            "English",
+            "Swedish"
+          ],
           "default": "English",
           "description": "Target language for the translation/polish."
         },
@@ -65,16 +72,17 @@
     "vscode:prepublish": "npm run compile",
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package"
+    "package": "vsce package && mv bridge-dot-one-*.vsix bridge_dot_one.vsix 2>/dev/null || true"
   },
   "devDependencies": {
-    "@types/vscode": "^1.74.0",
     "@types/node": "18.x",
     "@types/node-fetch": "^2.6.11",
+    "@types/vscode": "^1.74.0",
+    "@vscode/vsce": "^3.7.1",
     "typescript": "^4.9.4"
   },
   "dependencies": {
     "node-fetch": "^2.7.0"
-  }
+  },
+  "packageManager": "yarn@1.22.22+sha512.a6b2f7906b721bba3d67d4aff083df04dad64c399707841b7acf00f6b133b7ac24255f2652fa22ae3534329dc6180534e98d17432037ff6fd140556e2bb3137e"
 }
-
