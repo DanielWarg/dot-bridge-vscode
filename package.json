@@ -3,7 +3,7 @@
   "displayName": ".bridge - Developer Tone Translator",
   "description": "Translate raw developer thoughts into professional communication using local AI",
   "version": "0.0.1",
-  "publisher": "danielwarg",
+  "publisher": "postboxen",
   "icon": "icon.png",
   "repository": {
     "type": "git",
