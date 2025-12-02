@@ -37,3 +37,4 @@ if no_format:
 
 print(f"\n📈 Success rate: {len(status_only) + len(email_only)}/{len(data)} = {round((len(status_only) + len(email_only))/len(data)*100, 1)}%")
 
+

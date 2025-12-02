@@ -60,6 +60,49 @@ function checkRateLimit(): { allowed: boolean; retryAfter?: number } {
 }
 
 /**
+ * 🎨 MARKDOWN FORMATTING (Post-Processor)
+ * Tar AI:ns textmassa och formaterar den till perfekt Markdown-struktur
+ */
+function formatMarkdown(text: string): string {
+  let formatted = text;
+
+  // 1. Rensa bort AI-skräp (system-läckage)
+  formatted = formatted.replace(/--- MALL SLUT ---/gi, '');
+  formatted = formatted.replace(/VIKTIGT:.*/gi, '');
+
+  // 2. Fixa Huvudrubriken (### Status Update)
+  // Ser till att den har en tom rad efter sig
+  formatted = formatted.replace(/(###\s?Status Update)/i, '$1\n\n');
+
+  // 3. Fixa Summary-blocket
+  // Fångar: "> **Summary** [text]" och gör om till:
+  // > **Summary**
+  // > [text]
+  formatted = formatted.replace(/>\s?\*\*Summary\*\*(.*?)(\*\*Context\*\*|$)/is, (match, content, nextPart) => {
+    const cleanContent = content.trim().replace(/^>\s?/, ''); // Ta bort ev dubbla >
+    return `> **Summary**\n> ${cleanContent}\n\n${nextPart || ''}`;
+  });
+
+  // 4. Fixa Context-rubriken
+  // Sätter dubbla radbrytningar innan och en efter
+  formatted = formatted.replace(/\*\*Context\*\*/i, '\n\n**Context**\n');
+
+  // 5. Fixa Next Steps-rubriken
+  // Sätter dubbla radbrytningar innan och en efter
+  formatted = formatted.replace(/\*\*Next Steps\*\*/i, '\n\n**Next Steps**\n');
+
+  // 6. Fixa Punktlistor (Detta är magin för "korv-problemet")
+  // Om vi hittar en punkt (-) som INTE har en radbrytning innan sig, lägg till en.
+  // Exempel: "Gör detta. - Gör ditten." -> "Gör detta.\n- Gör ditten."
+  formatted = formatted.replace(/([^\n])\s+-\s/g, '$1\n- ');
+
+  // 7. Städa upp överflödiga tomrader (max 2 st)
+  formatted = formatted.replace(/\n{3,}/g, '\n\n');
+
+  return formatted.trim();
+}
+
+/**
  * 🚨 SSRF-Skydd: Validerar att URL:en är säker att använda.
  */
 function isValidUrl(url: string): boolean {
@@ -411,6 +454,53 @@ export async function bridgeText(
       cleanResponse = cleanResponse.slice(1, -1);
     }
 
+    // 5.3. 🧹 NEGATIV TON-STÄDNING (The Positivity Filter)
+    // Ta bort passivt aggressiva och negativa fraser
+    const negativePhrases = [
+      /\bto avoid (such |any |potential )?issues?\b/gi,
+      /\bto prevent future problems?\b/gi,
+      /\bso this doesn't happen again\b/gi,
+      /\bfor future usage\b/gi,
+      /\bto ensure future stability\b/gi,
+      /\bto address these concerns\b/gi,
+      /\bnegatively impacts?\b/gi,
+      /\bnegatively affects?\b/gi,
+      /\bin the future\b/gi, // Ofta används i negativ kontext
+      /\bto avoid any potential\b/gi,
+      /\bensure optimal performance in the future\b/gi,
+    ];
+
+    negativePhrases.forEach(rx => {
+      cleanResponse = cleanResponse.replace(rx, '').trim();
+    });
+
+    // Ta bort onödiga fraser och meningar
+    const unnecessaryPhrases = [
+      /\bLet me know if.*?\./gi,
+      /\bPlease note that.*?\./gi,
+      /\bIf you have any (questions|concerns|requirements).*?\./gi,
+      /\bduring this (optimization|process|work).*?\./gi,
+      /\bThank you for bringing.*?\./gi,
+      /\bI look forward to.*?\./gi,
+      /\bI understand that.*?\./gi,
+      /\bto minimize any potential impact\b/gi,
+      /\bso I can address them promptly\b/gi,
+    ];
+
+    unnecessaryPhrases.forEach(rx => {
+      cleanResponse = cleanResponse.replace(rx, '').trim();
+    });
+
+    // Ta bort "designed database table" → "database schema"
+    cleanResponse = cleanResponse.replace(/\bdesigned database table\b/gi, 'database schema');
+
+    // Ta bort "table design" och ersätt med "database schema" om det finns
+    cleanResponse = cleanResponse.replace(/\btable'?s? design\b/gi, 'database schema');
+    cleanResponse = cleanResponse.replace(/\btable structure\b/gi, 'database schema');
+    
+    // Rensa upp dubbel-mellanslag och punkt-punkt
+    cleanResponse = cleanResponse.replace(/\s+/g, ' ').replace(/\.\.+/g, '.').trim();
+
     // 5.2. 🛡️ CONTENT MODERATION (The Safety Net)
     // Blockera kända problematiska termer i output (sista försvarslinjen)
     const harmfulPatterns = [
@@ -429,6 +519,10 @@ export async function bridgeText(
         return '⚠️ This content cannot be processed as it contains inappropriate material.';
       }
     }
+
+    // 5.4. 🎨 MARKDOWN FORMATTING (Post-Processor)
+    // Låt koden hantera strukturen istället för att förlita sig på AI:n
+    cleanResponse = formatMarkdown(cleanResponse);
 
     return cleanResponse;
   } catch (error: any) {

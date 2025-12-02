@@ -40,3 +40,4 @@ if latencies:
     print(f"   P90: {p90}ms ({round(p90/1000, 2)}s)")
     print(f"   P95: {p95}ms ({round(p95/1000, 2)}s)")
 
+

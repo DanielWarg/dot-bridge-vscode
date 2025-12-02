@@ -66,3 +66,4 @@ for cat, count in sorted(categories.items()):
     avg_lat = sum(r['latency_ms'] for r in cat_data) / len(cat_data)
     print(f"   {cat}: {count} tests, avg latency: {round(avg_lat)}ms")
 
+

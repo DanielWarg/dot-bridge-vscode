@@ -20,3 +20,4 @@ img.save('icon.png')
 print("✅ Ikon skapad: icon.png")
 
 
+

@@ -45,3 +45,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [0.0.1]: https://github.com/DanielWarg/dot-bridge-vscode/releases/tag/v0.0.1
 
+
