@@ -14,6 +14,8 @@
 
 ![alt text](https://img.shields.io/badge/access-community-blue?style=flat-square)
 
+[![VS Code Marketplace](https://img.shields.io/badge/VS%20Code-Marketplace-blue?logo=visual-studio-code)](https://marketplace.visualstudio.com/items?itemName=postboxen.bridge-dot-one)
+
 **Deploy Empathy to Production.**
 
 </div>
@@ -67,7 +69,21 @@ Vem fan designade den här tabellen? Den saknar index och sänker hela prod så 
 
 **Output (Compiled):**
 ```
-We have identified a severe performance bottleneck in the database schema caused by missing indexes, which is impacting production stability under load. I will be dedicating the weekend to refactoring the schema to ensure we meet our performance requirements.
+### Status Update
+
+> **Summary**
+
+> A significant performance issue has been identified in the Database Schema due to the absence of indexes, which is impacting production stability as soon as traffic increases.
+
+**Context**
+
+The current configuration is compromising production stability under load. To restore system integrity, a refactoring of the schema is required.
+
+**Next Steps**
+
+- I will be dedicating my weekend to refactoring the Database Schema to ensure we meet our performance requirements.
+
+- Verify stability in staging before deployment.
 ```
 
 ## 4.0 / PRIVACY PROTOCOL
@@ -96,6 +112,13 @@ ollama pull mistral
 
 ### 5.2 Installation
 
+**Option A: VS Code Marketplace (Recommended)**
+1. Open VS Code
+2. Go to Extensions (`Cmd+Shift+X` / `Ctrl+Shift+X`)
+3. Search for `bridge_dot_one` or `postboxen.bridge-dot-one`
+4. Click Install
+
+**Option B: Manual Installation**
 1. Download the `.vsix` file from [Releases](https://github.com/DanielWarg/dot-bridge-vscode/releases).
 2. In VS Code, open Command Palette (`Cmd+Shift+P` / `Ctrl+Shift+P`).
 3. Type: `Extensions: Install from VSIX...`
@@ -105,7 +128,15 @@ ollama pull mistral
 
 1. Highlight your raw text in VS Code.
 2. Press `Cmd+Shift+B` (Mac) or `Ctrl+Shift+B` (Win/Linux).
-3. Review output in the diff view.
+3. Review output in the side-by-side preview window.
+
+**Output Format:**
+The extension transforms your text into a professional Status Update format with:
+- **Summary:** Key issue or action item
+- **Context:** Technical explanation
+- **Next Steps:** Concrete actions
+
+All output is formatted as clean Markdown with proper line breaks.
 
 ## 6.0 / CONFIGURATION
 
